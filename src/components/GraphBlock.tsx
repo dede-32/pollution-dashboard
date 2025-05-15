@@ -10,7 +10,6 @@ import {
   Tooltip,
   Legend,
   ChartDataset,
-  ScriptableLineSegmentContext,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
