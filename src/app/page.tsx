@@ -59,11 +59,6 @@ const [data, setData] = useState<Measurement[]>([]);
     <main className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Dashboard znečištění</h1>
       <TimeSelector selected={range} onChange={setRange} />
-
-          {/* TOHLE PAK SMAŽ------------------------------------------------------------------
-    <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
-      {JSON.stringify(data, null, 2)}
-    </pre> */}
     
       <GraphBlock
         title="IAQ + přesnost"
@@ -113,6 +108,18 @@ const [data, setData] = useState<Measurement[]>([]);
             label: "Tlak",
             data: data.map((d) => d.pressure),
             borderColor: "#6366f1",
+          },
+        ]}
+      />
+
+      <GraphBlock
+        title="CO2 [ppm]"
+        labels={labels}
+        datasets={[
+          {
+            label: "CO2",
+            data: data.map((d) => d.co2),
+            borderColor: "#0ea5e9",
           },
         ]}
       />
@@ -177,6 +184,18 @@ const [data, setData] = useState<Measurement[]>([]);
           },
         ]}
         dualAxis={true}
+      />
+
+      <GraphBlock
+        title="Nabití baterie [%]"
+        labels={labels}
+        datasets={[
+          {
+            label: "Nabití baterie",
+            data: data.map((d) => d.battery_percent),
+            borderColor: "#0ea5e9",
+          },
+        ]}
       />
     </main>
   );
