@@ -9,72 +9,99 @@ export default function Page() {
   const [range, setRange] = useState<Range>("24h");
 
   interface Measurement {
-  timestamp: string;
-  iaq: number;
-  iaq_accuracy: number;
-  temperature: number;
-  humidity: number;
-  pressure: number;
-  bvoc: number;
-  co2: number;
-  noise_dbc: number;
-  pm1: number;
-  pm2_5: number;
-  pm4: number;
-  pm10: number;
-  typical_size: number;
-  battery_percent: number;
+    timestamp: string;
+    iaq: number;
+    iaq_accuracy: number;
+    temperature: number;
+    humidity: number;
+    pressure: number;
+    bvoc: number;
+    co2: number;
+    noise_dbc: number;
+    pm1: number;
+    pm2_5: number;
+    pm4: number;
+    pm10: number;
+    typical_size: number;
+    battery_percent: number;
+  }
 
-}
-const [data, setData] = useState<Measurement[]>([]);
+  const [data, setData] = useState<Measurement[]>([]);
 
   useEffect(() => {
-  const fetchData = async () => {
-    const since = getTimestampForRange(range);
-    console.log("Fetching data since:", since); // ✅
+    const fetchData = async () => {
+      const since = getTimestampForRange(range);
+      console.log("Fetching data since:", since);
 
-    const { data, error } = await supabase
-      .from("measurements")
-      .select("*")
-      .gte("timestamp", since)
-      .order("timestamp", { ascending: true });
+      const { data, error } = await supabase
+        .from("measurements")
+        .select("*")
+        .gte("timestamp", since)
+        .order("timestamp", { ascending: true });
 
-  //   const { data, error } = await supabase
-  // .from("measurements")
-  // .select("*")
-  // .order("timestamp", { ascending: true });
+      console.log("Data from Supabase:", data);
 
-    console.log("Data from Supabase:", data); // ✅
+      if (!error) setData(data || []);
+    };
 
-    if (!error) setData(data || []);
-  };
+    fetchData();
+  }, [range]);
 
-  fetchData();
-}, [range]);
+  // === 🔍 Filtrování záznamů s null hodnotami ===
+  const filteredData = data.filter((d) =>
+    d.iaq !== null &&
+    d.iaq_accuracy !== null &&
+    d.temperature !== null &&
+    d.humidity !== null &&
+    d.pressure !== null &&
+    d.bvoc !== null &&
+    d.co2 !== null &&
+    d.noise_dbc !== null &&
+    d.pm1 !== null &&
+    d.pm2_5 !== null &&
+    d.pm4 !== null &&
+    d.pm10 !== null &&
+    d.typical_size !== null &&
+    d.battery_percent !== null
+  );
 
-
-  const labels = data.map((d) => new Date(d.timestamp).toLocaleTimeString());
+  const labels = filteredData.map((d) =>
+    new Date(d.timestamp).toLocaleTimeString("cs-CZ", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  );
 
   return (
     <main className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Dashboard znečištění</h1>
       <TimeSelector selected={range} onChange={setRange} />
-    
+
       <GraphBlock
         title="IAQ + přesnost"
         labels={labels}
         datasets={[
           {
             label: "IAQ",
-            data: data.map((d) => d.iaq),
-            borderColor: "#3b82f6",
+            data: filteredData.map((d) => d.iaq),
+            borderColor: "#3b82f6", // modrá
             yAxisID: "y",
           },
           {
-            label: "IAQ Accuracy",
-            data: data.map((d) => d.iaq_accuracy * 100),
-            borderColor: "#f97316",
+            label: "IAQ Accuracy [%]",
+            data: filteredData.map((d) => (d.iaq_accuracy / 3) * 100),
+            borderColor: "#f97316", // fallback
             yAxisID: "y1",
+            segment: {
+              borderColor: (ctx: any) => {
+                const i = ctx.p0DataIndex;
+                const acc = filteredData[i]?.iaq_accuracy;
+                if (acc === 3) return "#22c55e"; // zelená
+                if (acc === 2) return "#eab308"; // žlutá
+                if (acc === 1) return "#f97316"; // oranžová
+                return "#ef4444";               // červená
+              },
+            },
           },
         ]}
         dualAxis={true}
@@ -86,13 +113,13 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "Teplota [°C]",
-            data: data.map((d) => d.temperature),
+            data: filteredData.map((d) => d.temperature),
             borderColor: "#ef4444",
             yAxisID: "y",
           },
           {
             label: "Vlhkost [%]",
-            data: data.map((d) => d.humidity),
+            data: filteredData.map((d) => d.humidity),
             borderColor: "#3b82f6",
             yAxisID: "y1",
           },
@@ -106,7 +133,7 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "Tlak",
-            data: data.map((d) => d.pressure),
+            data: filteredData.map((d) => d.pressure),
             borderColor: "#6366f1",
           },
         ]}
@@ -118,7 +145,7 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "CO2",
-            data: data.map((d) => d.co2),
+            data: filteredData.map((d) => d.co2),
             borderColor: "#0ea5e9",
           },
         ]}
@@ -130,7 +157,7 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "bVOC",
-            data: data.map((d) => d.bvoc),
+            data: filteredData.map((d) => d.bvoc),
             borderColor: "#0ea5e9",
           },
         ]}
@@ -142,7 +169,7 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "Hluk",
-            data: data.map((d) => d.noise_dbc),
+            data: filteredData.map((d) => d.noise_dbc),
             borderColor: "#22c55e",
           },
         ]}
@@ -154,31 +181,31 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "PM1.0",
-            data: data.map((d) => d.pm1),
+            data: filteredData.map((d) => d.pm1),
             borderColor: "#6366f1",
             yAxisID: "y",
           },
           {
             label: "PM2.5",
-            data: data.map((d) => d.pm2_5),
+            data: filteredData.map((d) => d.pm2_5),
             borderColor: "#f43f5e",
             yAxisID: "y",
           },
           {
             label: "PM4.0",
-            data: data.map((d) => d.pm4),
+            data: filteredData.map((d) => d.pm4),
             borderColor: "#facc15",
             yAxisID: "y",
           },
           {
             label: "PM10",
-            data: data.map((d) => d.pm10),
+            data: filteredData.map((d) => d.pm10),
             borderColor: "#a3e635",
             yAxisID: "y",
           },
           {
             label: "Velikost částic [µm]",
-            data: data.map((d) => d.typical_size),
+            data: filteredData.map((d) => d.typical_size),
             borderColor: "#14b8a6",
             yAxisID: "y1",
           },
@@ -192,7 +219,7 @@ const [data, setData] = useState<Measurement[]>([]);
         datasets={[
           {
             label: "Nabití baterie",
-            data: data.map((d) => d.battery_percent),
+            data: filteredData.map((d) => d.battery_percent),
             borderColor: "#0ea5e9",
           },
         ]}
@@ -200,6 +227,7 @@ const [data, setData] = useState<Measurement[]>([]);
     </main>
   );
 }
+
 
 function getTimestampForRange(range: Range): string {
   const now = new Date();

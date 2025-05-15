@@ -36,9 +36,17 @@ export default function GraphBlock({
     data: number[];
     borderColor: string;
     yAxisID?: string;
+    segment?: {
+      borderColor?: (ctx: any) => string;
+    };
   }[];
   dualAxis?: boolean;
 }) {
+  const curvedDatasets = datasets.map((set) => ({
+    ...set,
+    tension: 0.4, // ← zaoblené křivky
+  }));
+
   const options = {
     responsive: true,
     interaction: { mode: "index" as const, intersect: false },
@@ -64,7 +72,7 @@ export default function GraphBlock({
 
   return (
     <div className="bg-white rounded p-4 shadow mb-6">
-      <Line data={{ labels, datasets }} options={options} />
+      <Line data={{ labels, datasets: curvedDatasets }} options={options} />
     </div>
   );
 }
