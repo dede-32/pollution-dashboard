@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import GraphBlock from "@/components/GraphBlock";
 import TimeSelector, { Range } from "@/components/selectors";
 import { useEffect, useState } from "react";
+import type { ScriptableLineSegmentContext } from "chart.js";
 
 export default function Page() {
   const [range, setRange] = useState<Range>("24h");
@@ -93,7 +94,7 @@ export default function Page() {
             borderColor: "#f97316", // fallback
             yAxisID: "y1",
             segment: {
-              borderColor: (ctx: any) => {
+              borderColor: (ctx: ScriptableLineSegmentContext) => {
                 const i = ctx.p0DataIndex;
                 const acc = filteredData[i]?.iaq_accuracy;
                 if (acc === 3) return "#22c55e"; // zelená
