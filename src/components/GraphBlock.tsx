@@ -9,7 +9,11 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartDataset,
+  ScriptableLineSegmentContext,
 } from "chart.js";
+
+import { Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -21,8 +25,6 @@ ChartJS.register(
   Legend
 );
 
-import { Line } from "react-chartjs-2";
-
 export default function GraphBlock({
   title,
   labels,
@@ -31,20 +33,12 @@ export default function GraphBlock({
 }: {
   title: string;
   labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    borderColor: string;
-    yAxisID?: string;
-    segment?: {
-      borderColor?: (ctx: any) => string;
-    };
-  }[];
+  datasets: ChartDataset<"line", number[]>[];
   dualAxis?: boolean;
 }) {
   const curvedDatasets = datasets.map((set) => ({
     ...set,
-    tension: 0.4, // ← zaoblené křivky
+    tension: 0.4, // zaoblené křivky
   }));
 
   const options = {
