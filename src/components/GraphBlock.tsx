@@ -53,7 +53,7 @@ export default function GraphBlock({
     scales: {
       x: {
         ticks: {
-          callback: function (_value: any, index: number) {
+          callback: function (_value: unknown, index: number) {
             const label = labels[index];
             if (!label) return "";
             const date = parseISO(label);
