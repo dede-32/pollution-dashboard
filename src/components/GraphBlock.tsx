@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
   ChartDataset,
+  TooltipItem,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { parseISO, format } from "date-fns";
@@ -51,7 +52,7 @@ export default function GraphBlock({
       title: { display: true, text: title },
       tooltip: {
         callbacks: {
-          title: (tooltipItems: any[]) => {
+          title: (tooltipItems: TooltipItem<"line">[]) => {
             const label = tooltipItems[0]?.label;
             if (!label) return "";
             const date = parseISO(label);
