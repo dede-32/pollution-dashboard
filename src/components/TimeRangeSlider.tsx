@@ -7,31 +7,20 @@ export default function TimeRangeSlider({
   value: number;
   onChange: (val: number) => void;
 }) {
-  const steps: { label: string; value: number }[] = [];
+  const min = 1;
+  const max = 168;
 
-  // 1–48 hodin
-  for (let i = 1; i <= 48; i++) {
-    steps.push({ label: `${i} h`, value: i });
-  }
+  const valueToLabel = (val: number): string => {
+    if (val < 48) return `${val} h`;
+    if (val === 72) return "3 dny";
+    if (val === 120) return "5 dní";
+    if (val === 168) return "7 dní";
+    return `${val} h`;
+  };
 
-  // 3, 5, 7 dní
-  steps.push({ label: "3 dny", value: 72 });
-  steps.push({ label: "5 dní", value: 120 });
-  steps.push({ label: "7 dní", value: 168 });
+  const currentLabel = valueToLabel(value);
 
-  const index = steps.findIndex((s) => s.value === value);
-  const currentLabel = steps[index]?.label || `${value} h`;
-
-  // Popisky pod sliderem – vybrané body (pozice v poli `steps`)
-  const markerIndexes = [
-    0,     // 1 h
-    11,    // 12 h
-    23,    // 24 h
-    47,    // 48 h
-    steps.findIndex((s) => s.value === 72),   // 3 dny
-    steps.findIndex((s) => s.value === 120),  // 5 dní
-    steps.findIndex((s) => s.value === 168),  // 7 dní
-  ];
+  const markers = [1, 12, 24, 48, 72, 120, 168];
 
   return (
     <div className="mb-6">
@@ -43,17 +32,17 @@ export default function TimeRangeSlider({
 
       <input
         type="range"
-        min={0}
-        max={steps.length - 1}
-        value={index}
-        onChange={(e) => onChange(steps[+e.target.value].value)}
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(+e.target.value)}
         className="w-full"
       />
 
       <div className="flex justify-between text-sm text-gray-600 mt-1">
-        {markerIndexes.map((i) => (
-          <span key={i} className="text-center w-[10%]">
-            {steps[i]?.label}
+        {markers.map((m) => (
+          <span key={m} className="text-center">
+            {valueToLabel(m)}
           </span>
         ))}
       </div>
