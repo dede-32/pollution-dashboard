@@ -2,12 +2,12 @@
 
 import { supabase } from "@/lib/supabase";
 import GraphBlock from "@/components/GraphBlock";
-import TimeSelector, { Range } from "@/components/selectors";
+import TimeRangeSlider from "@/components/TimeRangeSlider";
 import { useEffect, useState } from "react";
 import type { ScriptableLineSegmentContext } from "chart.js";
 
 export default function Page() {
-  const [range, setRange] = useState<Range>("24h");
+  const [rangeHours, setRangeHours] = useState<number>(24);
 
   interface Measurement {
     timestamp: string;
@@ -31,7 +31,7 @@ export default function Page() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const since = getTimestampForRange(range);
+      const since = getTimestampFromHours(rangeHours);
       console.log("Fetching data since:", since);
 
       const { data, error } = await supabase
@@ -40,15 +40,12 @@ export default function Page() {
         .gte("timestamp", since)
         .order("timestamp", { ascending: true });
 
-      console.log("Data from Supabase:", data);
-
       if (!error) setData(data || []);
     };
 
     fetchData();
-  }, [range]);
+  }, [rangeHours]);
 
-  // === 🔍 Filtrování záznamů s null hodnotami ===
   const filteredData = data.filter((d) =>
     d.iaq !== null &&
     d.iaq_accuracy !== null &&
@@ -66,41 +63,37 @@ export default function Page() {
     d.battery_percent !== null
   );
 
-  const labels = filteredData.map((d) =>
-    new Date(d.timestamp).toLocaleTimeString("cs-CZ", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  );
+  const labels = filteredData.map((d) => d.timestamp);
 
   return (
     <main className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Dashboard znečištění</h1>
-      <TimeSelector selected={range} onChange={setRange} />
+      <TimeRangeSlider value={rangeHours} onChange={setRangeHours} />
 
       <GraphBlock
         title="IAQ + přesnost"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "IAQ",
             data: filteredData.map((d) => d.iaq),
-            borderColor: "#3b82f6", // modrá
+            borderColor: "#3b82f6",
             yAxisID: "y",
           },
           {
             label: "IAQ Accuracy [%]",
             data: filteredData.map((d) => (d.iaq_accuracy / 3) * 100),
-            borderColor: "#f97316", // fallback
+            borderColor: "#f97316",
             yAxisID: "y1",
             segment: {
               borderColor: (ctx: ScriptableLineSegmentContext) => {
                 const i = ctx.p0DataIndex;
                 const acc = filteredData[i]?.iaq_accuracy;
-                if (acc === 3) return "#22c55e"; // zelená
-                if (acc === 2) return "#eab308"; // žlutá
-                if (acc === 1) return "#f97316"; // oranžová
-                return "#ef4444";               // červená
+                if (acc === 3) return "#22c55e";
+                if (acc === 2) return "#eab308";
+                if (acc === 1) return "#f97316";
+                return "#ef4444";
               },
             },
           },
@@ -111,6 +104,7 @@ export default function Page() {
       <GraphBlock
         title="Teplota a vlhkost"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "Teplota [°C]",
@@ -131,6 +125,7 @@ export default function Page() {
       <GraphBlock
         title="Tlak [hPa]"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "Tlak",
@@ -143,6 +138,7 @@ export default function Page() {
       <GraphBlock
         title="CO2 [ppm]"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "CO2",
@@ -155,6 +151,7 @@ export default function Page() {
       <GraphBlock
         title="bVOC [ppm]"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "bVOC",
@@ -167,6 +164,7 @@ export default function Page() {
       <GraphBlock
         title="Hluk [dBC]"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "Hluk",
@@ -179,6 +177,7 @@ export default function Page() {
       <GraphBlock
         title="Pevné částice a velikost"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "PM1.0",
@@ -217,6 +216,7 @@ export default function Page() {
       <GraphBlock
         title="Nabití baterie [%]"
         labels={labels}
+        rangeHours={rangeHours}
         datasets={[
           {
             label: "Nabití baterie",
@@ -229,17 +229,7 @@ export default function Page() {
   );
 }
 
-
-function getTimestampForRange(range: Range): string {
+function getTimestampFromHours(hours: number): string {
   const now = new Date();
-  switch (range) {
-    case "6h":
-      return new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString();
-    case "24h":
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-    case "7d":
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    default:
-      throw new Error("Invalid range");
-  }
+  return new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString();
 }

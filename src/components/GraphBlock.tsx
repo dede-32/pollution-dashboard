@@ -11,8 +11,8 @@ import {
   Legend,
   ChartDataset,
 } from "chart.js";
-
 import { Line } from "react-chartjs-2";
+import { parseISO, format } from "date-fns";
 
 ChartJS.register(
   CategoryScale,
@@ -29,15 +29,17 @@ export default function GraphBlock({
   labels,
   datasets,
   dualAxis = false,
+  rangeHours,
 }: {
   title: string;
   labels: string[];
   datasets: ChartDataset<"line", number[]>[];
   dualAxis?: boolean;
+  rangeHours: number;
 }) {
   const curvedDatasets = datasets.map((set) => ({
     ...set,
-    tension: 0.4, // zaoblené křivky
+    tension: 0.4,
   }));
 
   const options = {
@@ -48,19 +50,30 @@ export default function GraphBlock({
       legend: { position: "top" as const },
       title: { display: true, text: title },
     },
-    scales: dualAxis
-      ? {
-          y: {
-            type: "linear" as const,
-            position: "left" as const,
+    scales: {
+      x: {
+        ticks: {
+          callback: function (_value: any, index: number) {
+            const label = labels[index];
+            if (!label) return "";
+            const date = parseISO(label);
+            return rangeHours >= 24
+              ? format(date, "d.M. HH:mm")
+              : format(date, "HH:mm");
           },
-          y1: {
-            type: "linear" as const,
-            position: "right" as const,
-            grid: { drawOnChartArea: false },
-          },
-        }
-      : {},
+        },
+      },
+      ...(dualAxis
+        ? {
+            y: { type: "linear" as const, position: "left" as const },
+            y1: {
+              type: "linear" as const,
+              position: "right" as const,
+              grid: { drawOnChartArea: false },
+            },
+          }
+        : {}),
+    },
   };
 
   return (
