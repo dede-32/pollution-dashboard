@@ -67,7 +67,7 @@ export default function Page() {
 
   return (
     <main className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Dashboard znečištění</h1>
+      <h1 className="text-2xl font-bold mb-4">Jednotka pro měření znečištění způsobeného silniční dopravou</h1>
       <TimeRangeSlider value={rangeHours} onChange={setRangeHours} />
 
       <GraphBlock

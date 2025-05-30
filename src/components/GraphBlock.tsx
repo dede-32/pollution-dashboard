@@ -49,6 +49,18 @@ export default function GraphBlock({
     plugins: {
       legend: { position: "top" as const },
       title: { display: true, text: title },
+      tooltip: {
+        callbacks: {
+          title: (tooltipItems: any[]) => {
+            const label = tooltipItems[0]?.label;
+            if (!label) return "";
+            const date = parseISO(label);
+            return rangeHours >= 24
+              ? format(date, "d.M. HH:mm")
+              : format(date, "HH:mm");
+          },
+        },
+      },
     },
     scales: {
       x: {

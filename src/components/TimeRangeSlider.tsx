@@ -14,15 +14,33 @@ export default function TimeRangeSlider({
     steps.push({ label: `${i} h`, value: i });
   }
 
-  // Potom 3, 5, 7 dní
+  // 3, 5, 7 dní
   steps.push({ label: "3 dny", value: 72 });
   steps.push({ label: "5 dní", value: 120 });
   steps.push({ label: "7 dní", value: 168 });
 
   const index = steps.findIndex((s) => s.value === value);
+  const currentLabel = steps[index]?.label || `${value} h`;
+
+  // Popisky pod sliderem – vybrané body (pozice v poli `steps`)
+  const markerIndexes = [
+    0,     // 1 h
+    11,    // 12 h
+    23,    // 24 h
+    47,    // 48 h
+    steps.findIndex((s) => s.value === 72),   // 3 dny
+    steps.findIndex((s) => s.value === 120),  // 5 dní
+    steps.findIndex((s) => s.value === 168),  // 7 dní
+  ];
 
   return (
     <div className="mb-6">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-sm text-gray-700 font-medium">
+          Rozsah: {currentLabel}
+        </span>
+      </div>
+
       <input
         type="range"
         min={0}
@@ -31,10 +49,11 @@ export default function TimeRangeSlider({
         onChange={(e) => onChange(steps[+e.target.value].value)}
         className="w-full"
       />
+
       <div className="flex justify-between text-sm text-gray-600 mt-1">
-        {steps.map((s, i) => (
+        {markerIndexes.map((i) => (
           <span key={i} className="text-center w-[10%]">
-            {i % 10 === 0 || i === steps.length - 1 ? s.label : ""}
+            {steps[i]?.label}
           </span>
         ))}
       </div>
